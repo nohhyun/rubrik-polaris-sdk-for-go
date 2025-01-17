@@ -19,19 +19,9 @@ import (
 // client is the common RSC client used for tests. By reusing the same client
 // we reduce the risk of hitting rate limits when access tokens are created.
 var (
-	cdmID      = uuid.MustParse("e257be55-ebbc-4870-8d84-b57aa61445f3")
-	goldSLAFID = uuid.MustParse("ff5a4d4d-1da0-58c3-a2a9-6aecbcc5c60d")
-	client     *polaris.Client
-	trueValue  = true
-	falseValue = false
-
-	k8sClusterAddWithKubeconfig = infinityk8s.K8sClusterAddInput{
-		Name:         "test-k8s-cluster",
-		Distribution: "vanilla",
-		Kubeconfig:   "<kubeconfig>",
-		Transport:    "loadbalancer",
-	}
-
+	client                   *polaris.Client
+	trueValue                = true
+	falseValue               = false
 	k8sUpdateTransportConfig = infinityk8s.K8sClusterUpdateConfigInput{
 		Transport: "nodeport",
 	}
@@ -40,10 +30,9 @@ var (
 func TestMain(m *testing.M) {
 
 	if testsetup.BoolEnvSet("TEST_INTEGRATION") {
-		// When enabling integration tests, uncomment the below section.
 		// Load configuration and create client. Usually resolved using the
 		// environment variable RUBRIK_POLARIS_SERVICEACCOUNT_FILE.
-		polAccount, err := polaris.DefaultServiceAccount(false)
+		polAccount, err := polaris.DefaultServiceAccount(true)
 		if err != nil {
 			fmt.Printf("failed to get default service account: %v\n", err)
 			os.Exit(1)
@@ -75,13 +64,16 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// TestIntegration tests the flow from creation of a ProtectionSet to export.
+// TestK8SIntegration tests the flow from creation of a ProtectionSet to export.
 // Needs
-// - RSC service account setup in ~/.rubrik/polaris-service-account.json
-// - CDM onboarded onto above account and its ID.
-// - A valid kubeconfig set in k8sClusterAddWithKubeconfig.Kubeconfig.
-// - Gold SLA fid from RSC cluster. The SLA should be owned by CDM.
-func TestIntegration(t *testing.T) {
+//   - RSC service account setup in ~/.rubrik/polaris-service-account.json
+//   - A K8S test config json file pointed by the TEST_K8SCONFIG_FILE env
+//     containing:
+//   - cdmID: ID of CDM onboarded onto above account.
+//   - kubeconfigFilePath: Path to a valid K8s Cluster kubeconfig supporting
+//     load-balancers.
+//   - slaID: FID of an SLA present on the RSC cluster.
+func TestK8SIntegration(t *testing.T) {
 	ctx := context.Background()
 
 	if !testsetup.BoolEnvSet("TEST_INTEGRATION") {
@@ -92,16 +84,36 @@ func TestIntegration(t *testing.T) {
 	logger := infinityK8sClient.GQL.Log()
 	logger.SetLogLevel(log.Debug)
 
+	// Read the K8S Test Config.
+	testConfig, err := testsetup.K8SConfig()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// Read the kubeconfig from the file path.
+	kubeconfig, err := os.ReadFile(testConfig.KubeconfigFilePath)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 	// 0. Add K8s Cluster.
 	addK8sResponse, err := infinityK8sClient.AddK8sCluster(
 		ctx,
-		cdmID,
-		k8sClusterAddWithKubeconfig,
+		testConfig.CDMID,
+		infinityk8s.K8sClusterAddInput{
+			Name:         "test-k8s-cluster",
+			Distribution: "vanilla",
+			Kubeconfig:   string(kubeconfig),
+			Transport:    "loadbalancer",
+		},
 	)
 	if err != nil {
 		t.Error(err)
 		return
 	}
+
 	k8sFID := uuid.MustParse(addK8sResponse.ID)
 	logger.Printf(log.Info, "add k8s cluster succeeded, %+v", addK8sResponse)
 
@@ -190,11 +202,11 @@ func TestIntegration(t *testing.T) {
 	}
 	logger.Printf(log.Info, "update protection set succeeded, %+v", updateResp)
 
-	// 3. Assign SLA to resource set
+	// 3. Assign SLA to protection set.
 	slaClient := core.Wrap(client.GQL)
 	assignResp, err := slaClient.AssignSLAForSnappableHierarchies(
 		ctx,
-		&goldSLAFID,
+		&testConfig.SLAID,
 		core.ProtectWithSLAID,
 		[]uuid.UUID{rsFID},
 		nil,
@@ -218,12 +230,13 @@ func TestIntegration(t *testing.T) {
 	}
 	logger.Printf(log.Info, "get protection set succeeded, %+v", getResp)
 
-	if getResp.EffectiveSLADomain.ID != goldSLAFID.String() {
+	if getResp.EffectiveSLADomain.ID != testConfig.SLAID.String() {
 		logger.Printf(
 			log.Warn,
-			"sla domain id %v in the resource set object doesn't match expected value %v",
+			"sla domain id %v in the protection set object doesn't match"+
+				" expected value %v",
 			getResp.ConfiguredSLADomain.ID,
-			goldSLAFID.String(),
+			testConfig.SLAID.String(),
 		)
 	}
 
@@ -231,7 +244,9 @@ func TestIntegration(t *testing.T) {
 	snapshotRet, err := infinityK8sClient.CreateK8sProtectionSetSnapshot(
 		ctx,
 		rsFID.String(),
-		infinityk8s.BaseOnDemandSnapshotConfigInput{SLAID: goldSLAFID.String()},
+		infinityk8s.BaseOnDemandSnapshotConfigInput{
+			SLAID: testConfig.SLAID.String(),
+		},
 	)
 	if err != nil {
 		t.Error(err)
@@ -240,10 +255,10 @@ func TestIntegration(t *testing.T) {
 	logger.Printf(log.Info, "response: %+v", snapshotRet)
 
 	// 6. Get the status of the job.
-	getJobResp, err := infinityK8sClient.JobInstance(
+	getJobResp, err := infinityK8sClient.K8sJobInstance(
 		ctx,
 		snapshotRet.ID,
-		cdmID.String(),
+		testConfig.CDMID,
 	)
 	if err != nil {
 		t.Error(err)
@@ -290,7 +305,7 @@ func TestIntegration(t *testing.T) {
 	series, err := infinityK8sClient.ActivitySeries(
 		ctx,
 		uuid.MustParse(esi),
-		cdmID,
+		testConfig.CDMID,
 	)
 	if err != nil {
 		t.Error(err)
@@ -306,7 +321,7 @@ func TestIntegration(t *testing.T) {
 		)
 	}
 
-	// 8. Start the on demand export k8s resource set snapshot job
+	// 8. Start the on demand export k8s protection set snapshot job
 	exportJobResp, err := infinityK8sClient.ExportK8sProtectionSetSnapshot(
 		ctx,
 		snaps[0],
@@ -325,10 +340,10 @@ func TestIntegration(t *testing.T) {
 
 	// 9. Use the job id of the new job and call the get job instance operation
 	// exportJobResp.ID would have a valid job instance id
-	getJobResp, err = infinityK8sClient.JobInstance(
+	getJobResp, err = infinityK8sClient.K8sJobInstance(
 		ctx,
 		exportJobResp.ID,
-		cdmID.String(),
+		testConfig.CDMID,
 	)
 	if err != nil {
 		t.Error(err)
@@ -342,7 +357,7 @@ func TestIntegration(t *testing.T) {
 	rseries, err := infinityK8sClient.ActivitySeries(
 		ctx,
 		uuid.MustParse(resi),
-		cdmID,
+		testConfig.CDMID,
 	)
 	if err != nil {
 		t.Error(err)
@@ -358,7 +373,7 @@ func TestIntegration(t *testing.T) {
 		)
 	}
 
-	// 11. Start the on demand restore k8s resource set snapshot job
+	// 11. Start the on demand restore k8s protection set snapshot job
 	restoreJobResp, err := infinityK8sClient.RestoreK8sProtectionSetSnapshot(
 		ctx,
 		snaps[0],
@@ -375,10 +390,10 @@ func TestIntegration(t *testing.T) {
 
 	// 12. Use the job id of the new job and call the get job instance operation
 	// restoreJobResp.ID would have a valid job instance id
-	getJobResp, err = infinityK8sClient.JobInstance(
+	getJobResp, err = infinityK8sClient.K8sJobInstance(
 		ctx,
 		restoreJobResp.ID,
-		cdmID.String(),
+		testConfig.CDMID,
 	)
 	if err != nil {
 		t.Error(err)
@@ -397,7 +412,7 @@ func TestIntegration(t *testing.T) {
 	fid, err := infinityK8sClient.K8sObjectFID(
 		ctx,
 		interalID,
-		cdmID,
+		testConfig.CDMID,
 	)
 	if err != nil {
 		t.Error(err)
@@ -413,60 +428,6 @@ func TestIntegration(t *testing.T) {
 	}
 }
 
-func TestIntegrationTemp(t *testing.T) {
-	ctx := context.Background()
-
-	if !testsetup.BoolEnvSet("TEST_INTEGRATION") {
-		t.Skipf("skipping due to env TEST_INTEGRATION not set")
-	}
-	slaFID := uuid.MustParse("95475fd9-070f-49ae-800d-6e8631ebf8a3")
-	infinityK8sClient := infinityk8s.Wrap(client)
-	logger := infinityK8sClient.GQL.Log()
-	logger.SetLogLevel(log.Debug)
-	// 1. Assign SLA to resource set
-	slaClient := core.Wrap(client.GQL)
-	retention := core.RetainSnapshots
-	slaResp, err := slaClient.AssignSLAForSnappableHierarchies(
-		ctx,
-		&slaFID,
-		core.ProtectWithSLAID,
-		[]uuid.UUID{uuid.MustParse("288e8033-9d6b-5a58-850b-62c53579dd3d")},
-		nil,
-		nil,         // shouldApplyToExistingSnapshots
-		&falseValue, // shouldApplyToNonPolicySnapshots
-		&retention,
-		nil, // userNote
-	)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	logger.Printf(log.Info, "Assign SLA response %v\n", slaResp)
-}
-
-func TestIntegrationK8sJobInstance(t *testing.T) {
-	ctx := context.Background()
-
-	if !testsetup.BoolEnvSet("TEST_INTEGRATION") {
-		t.Skipf("skipping due to env TEST_INTEGRATION not set")
-	}
-	cdmUUID := uuid.MustParse("8f7ce6e6-5d20-4496-b45d-ea2c50efa025")
-	infinityK8sClient := infinityk8s.Wrap(client)
-	logger := infinityK8sClient.GQL.Log()
-	logger.SetLogLevel(log.Debug)
-	// 1. Get the Job status using k8sJobInstance endpoint.
-	jobResp, err := infinityK8sClient.K8sJobInstance(
-		ctx,
-		"CREATE_MN_K8S_SNAPSHOT_f7101244-c3ca-495d-946c-d4d0c2cd676c_cc859058-f5fd-48ea-8aa2-ccb80fc089c6:::0",
-		cdmUUID,
-	)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	logger.Printf(log.Info, "Get k8sJobInstance response %v\n", jobResp)
-}
-
 func TestIntegrationTranslation(t *testing.T) {
 	ctx := context.Background()
 
@@ -478,13 +439,17 @@ func TestIntegrationTranslation(t *testing.T) {
 	logger := infinityK8sClient.GQL.Log()
 	logger.SetLogLevel(log.Debug)
 
+	testConfig, err := testsetup.K8SConfig()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 	// 1. Translate Global SLA FID to internal_id and back.
-	silverFID := uuid.MustParse("313297f1-0b9d-4a1f-826c-ccc607dae06a")
-	clusterUUID := uuid.MustParse("10ae4970-e22f-4d92-a04f-cbf241103190")
 	internalID, err := infinityK8sClient.K8sObjectInternalIDByType(
 		ctx,
-		silverFID,
-		clusterUUID,
+		testConfig.SLAID,
+		testConfig.CDMID,
 		infinityk8s.K8sObjectTypeSLA,
 	)
 	if err != nil {
@@ -498,7 +463,7 @@ func TestIntegrationTranslation(t *testing.T) {
 	fid, err := infinityK8sClient.K8sObjectFIDByType(
 		ctx,
 		internalID,
-		clusterUUID,
+		testConfig.CDMID,
 		infinityk8s.K8sObjectTypeSLA,
 	)
 	if err != nil {
@@ -507,47 +472,11 @@ func TestIntegrationTranslation(t *testing.T) {
 	}
 
 	logger.Printf(log.Info, "get fid response: %v", fid)
-	if silverFID != fid {
+	if testConfig.SLAID != fid {
 		t.Errorf(
 			"internal id %s doesn't match expectation %s",
 			fid.String(),
-			silverFID.String(),
-		)
-	}
-
-	// 2. Translate internal_id to Global SLA FID and back.
-	slaInternalID := uuid.MustParse("ff8be367-25c4-43bf-bd56-e16d66984aef")
-	fid, err = infinityK8sClient.K8sObjectFIDByType(
-		ctx,
-		slaInternalID,
-		clusterUUID,
-		infinityk8s.K8sObjectTypeSLA,
-	)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	logger.Printf(log.Info, "get fid response: %v", fid)
-
-	// Get the object internal_id from RSC
-	internalID, err = infinityK8sClient.K8sObjectInternalIDByType(
-		ctx,
-		fid,
-		clusterUUID,
-		infinityk8s.K8sObjectTypeSLA,
-	)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	logger.Printf(log.Info, "get internal id response: %v", internalID)
-	if internalID != slaInternalID {
-		t.Errorf(
-			"internal id %s doesn't match expectation %s",
-			internalID.String(),
-			slaInternalID.String(),
+			testConfig.SLAID.String(),
 		)
 	}
 }

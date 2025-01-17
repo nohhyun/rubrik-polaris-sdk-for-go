@@ -32,7 +32,10 @@ type testAwsAccount struct {
 func AWSAccount() (testAwsAccount, error) {
 	buf, err := os.ReadFile(os.Getenv("TEST_AWSACCOUNT_FILE"))
 	if err != nil {
-		return testAwsAccount{}, fmt.Errorf("failed to read file pointed to by TEST_AWSACCOUNT_FILE: %v", err)
+		return testAwsAccount{}, fmt.Errorf(
+			"failed to read file pointed to by TEST_AWSACCOUNT_FILE: %v",
+			err,
+		)
 	}
 
 	testAccount := testAwsAccount{}
@@ -41,7 +44,10 @@ func AWSAccount() (testAwsAccount, error) {
 	}
 
 	if n := len(testAccount.Exocompute.Subnets); n != 2 {
-		return testAwsAccount{}, fmt.Errorf("file contains the wrong number of subnets: %d", n)
+		return testAwsAccount{}, fmt.Errorf(
+			"file contains the wrong number of subnets: %d",
+			n,
+		)
 	}
 
 	return testAccount, nil
@@ -74,7 +80,10 @@ type testAzureSubscription struct {
 func AzureSubscription() (testAzureSubscription, error) {
 	buf, err := os.ReadFile(os.Getenv("TEST_AZURESUBSCRIPTION_FILE"))
 	if err != nil {
-		return testAzureSubscription{}, fmt.Errorf("failed to read file pointed to by TEST_AZURESUBSCRIPTION_FILE: %v", err)
+		return testAzureSubscription{}, fmt.Errorf(
+			"failed to read file pointed to by TEST_AZURESUBSCRIPTION_FILE: %v",
+			err,
+		)
 	}
 
 	testSubscription := testAzureSubscription{}
@@ -99,7 +108,10 @@ type testGcpProject struct {
 func GCPProject() (testGcpProject, error) {
 	buf, err := os.ReadFile(os.Getenv("TEST_GCPPROJECT_FILE"))
 	if err != nil {
-		return testGcpProject{}, fmt.Errorf("failed to read file pointed to by TEST_GCPPROJECT_FILE: %v", err)
+		return testGcpProject{}, fmt.Errorf(
+			"failed to read file pointed to by TEST_GCPPROJECT_FILE: %v",
+			err,
+		)
 	}
 	testProject := testGcpProject{}
 	if err := json.Unmarshal(buf, &testProject); err != nil {
@@ -120,11 +132,40 @@ type testRSCConfig struct {
 func RSCConfig() (testRSCConfig, error) {
 	buf, err := os.ReadFile(os.Getenv("TEST_RSCCONFIG_FILE"))
 	if err != nil {
-		return testRSCConfig{}, fmt.Errorf("failed to read file pointed to by TEST_RSCCONFIG_FILE: %v", err)
+		return testRSCConfig{}, fmt.Errorf(
+			"failed to read file pointed to by TEST_RSCCONFIG_FILE: %v",
+			err,
+		)
 	}
 	testConfig := testRSCConfig{}
 	if err := json.Unmarshal(buf, &testConfig); err != nil {
 		return testRSCConfig{}, err
+	}
+	return testConfig, nil
+}
+
+// tesK8SProjectConfig hold K8s project information used in the integration
+// tests.
+// Currently, the component is only testing the graphql endpoints.
+type testK8SProjectConfig struct {
+	CDMID              uuid.UUID `json:"cdmID"`
+	SLAID              uuid.UUID `json:"slaID"`
+	KubeconfigFilePath string    `json:"kubeconfigFilePath"`
+}
+
+// K8SConfig returns the test configuration for testing the Kubernetes
+// component.
+func K8SConfig() (testK8SProjectConfig, error) {
+	buf, err := os.ReadFile(os.Getenv("TEST_K8SCONFIG_FILE"))
+	if err != nil {
+		return testK8SProjectConfig{}, fmt.Errorf(
+			"failed to read file pointed to by TEST_K8SCONFIG_FILE: %v",
+			err,
+		)
+	}
+	testConfig := testK8SProjectConfig{}
+	if err := json.Unmarshal(buf, &testConfig); err != nil {
+		return testK8SProjectConfig{}, err
 	}
 	return testConfig, nil
 }
