@@ -39,163 +39,252 @@ import (
 
 // JobInstanceDetail describes the state of a CDM job.
 type JobInstanceDetail struct {
-	Status             string  `json:"status"`
-	StartTime          string  `json:"startTime,omitempty"`
-	Result             string  `json:"result,omitempty"`
-	OpentracingContext string  `json:"opentracingContext,omitempty"`
-	NodeID             string  `json:"nodeId"`
-	JobType            string  `json:"jobType"`
-	JobProgress        float64 `json:"jobProgress,omitempty"`
-	IsDisabled         bool    `json:"isDisabled"`
-	ID                 string  `json:"id"`
-	ErrorInfo          string  `json:"errorInfo,omitempty"`
-	EventSeriesID      string  `json:"eventSeriesId,omitempty"`
-	EndTime            string  `json:"endTime,omitempty"`
-	ChildJobDebugInfo  string  `json:"childJobDebugInfo,omitempty"`
-	Archived           bool    `json:"archived"`
+	// Status gives the current status of the job.
+	Status string `json:"status"`
+	// StartTime gives the time when the job started.
+	StartTime string `json:"startTime,omitempty"`
+	// Result gives the result of the job.
+	Result string `json:"result,omitempty"`
+	// OpentracingContext is the opentracing context of the job.
+	OpentracingContext string `json:"opentracingContext,omitempty"`
+	// NodeID is the ID of the CDM node where the job is running.
+	NodeID string `json:"nodeId"`
+	// JobType is the type of the job.
+	JobType string `json:"jobType"`
+	// JobProgress is the progress of the job.
+	JobProgress float64 `json:"jobProgress,omitempty"`
+	// IsDisabled is true if the job is disabled.
+	IsDisabled bool `json:"isDisabled"`
+	// ID is the ID of the job.
+	ID string `json:"id"`
+	// ErrorInfo is the error information of the job.
+	ErrorInfo string `json:"errorInfo,omitempty"`
+	// EventSeriesID is the ID of the event series to identify events related
+	// to the job.
+	EventSeriesID string `json:"eventSeriesId,omitempty"`
+	// EndTime is the time when the job ended.
+	EndTime string `json:"endTime,omitempty"`
+	// ChildJobDebugInfo is the debug information of the child job.
+	ChildJobDebugInfo string `json:"childJobDebugInfo,omitempty"`
+	// Archived is true if the job is archived.
+	Archived bool `json:"archived"`
 }
 
-// K8sJobInstanceDetail describes the state of a K8s CDM job. It is limited
-// to the fields that are used by the K8s job CRDs.
+// K8sJobInstanceDetail describes the state of a K8s CDM job. It is limited to
+// the fields that are used by the K8s job CRDs.
 type K8sJobInstanceDetail struct {
-	ID            string `json:"id"`
+	// ID is the ID of the job.
+	ID string `json:"id"`
+	// EventSeriesID is the ID of the event series to identify events related
+	// to the job.
 	EventSeriesID string `json:"eventSeriesId"`
-	StartTime     string `json:"startTime,omitempty"`
-	EndTime       string `json:"endTime,omitempty"`
-	JobStatus     string `json:"jobStatus"`
+	// StartTime gives the time when the job started.
+	StartTime string `json:"startTime,omitempty"`
+	// EndTime is the time when the job ended.
+	EndTime string `json:"endTime,omitempty"`
+	// JobStatus gives the current status of the job.
+	JobStatus string `json:"jobStatus"`
 }
 
-// AddK8sProtectionSetConfig defines the input parameters required to a
+// AddK8sProtectionSetConfig defines the input parameters required to create a
 // ProtectionSet.
 type AddK8sProtectionSetConfig struct {
-	Definition          string   `json:"definition"`
-	HookConfigs         []string `json:"hookConfigs,omitempty"`
-	KubernetesClusterID string   `json:"kubernetesClusterId,omitempty"`
-	KubernetesNamespace string   `json:"kubernetesNamespace,omitempty"`
-	Name                string   `json:"name"`
-	RSType              string   `json:"rsType"`
+	// Definition is the definition containing filters for the protection set.
+	Definition string `json:"definition"`
+	// HookConfigs are the hook configurations for the protection set.
+	HookConfigs []string `json:"hookConfigs,omitempty"`
+	// KubernetesClusterID is the ID of the Kubernetes cluster.
+	KubernetesClusterID string `json:"kubernetesClusterId,omitempty"`
+	// KubernetesNamespace is the namespace of the Kubernetes cluster.
+	KubernetesNamespace string `json:"kubernetesNamespace,omitempty"`
+	// Name is the name of the protection set.
+	Name string `json:"name"`
+	// RSType is the type of the protection set.
+	RSType string `json:"rsType"`
 }
 
-// UpdateK8sProtectionSetConfig defines the input parameters required to update
-// a ProtectionSet.
+// UpdateK8sProtectionSetConfig defines the input parameters required to
+// update a ProtectionSet.
 type UpdateK8sProtectionSetConfig struct {
-	Definition  string   `json:"definition,omitempty"`
+	// Definition is the filter definition of the protection set.
+	Definition string `json:"definition,omitempty"`
+	// HookConfigs are the hook configurations for the protection set.
 	HookConfigs []string `json:"hookConfigs,omitempty"`
 }
 
-// AddK8sProtectionSetResponse is the response received from adding a K8s cluster.
+// AddK8sProtectionSetResponse is the response received from adding a K8s
+// cluster.
 type AddK8sProtectionSetResponse struct {
-	ID                    string   `json:"id"`
-	Definition            string   `json:"definition"`
-	HookConfigs           []string `json:"hookConfigs,omitempty"`
-	KubernetesClusterUUID string   `json:"kubernetesClusterUuid,omitempty"`
-	KubernetesNamespace   string   `json:"kubernetesNamespace,omitempty"`
-	Name                  string   `json:"name"`
-	RSType                string   `json:"rsType"`
+	// ID is the ID of the protection set.
+	ID string `json:"id"`
+	// Definition is the filter definition of the protection set.
+	Definition string `json:"definition"`
+	// HookConfigs are the hook configurations for the protection set.
+	HookConfigs []string `json:"hookConfigs,omitempty"`
+	// KubernetesClusterUUID is the UUID of the source Kubernetes cluster.
+	KubernetesClusterUUID string `json:"kubernetesClusterUuid,omitempty"`
+	// KubernetesNamespace is the namespace of the Kubernetes cluster.
+	KubernetesNamespace string `json:"kubernetesNamespace,omitempty"`
+	// Name is the name of the protection set.
+	Name string `json:"name"`
+	// RSType is the type of the protection set.
+	RSType string `json:"rsType"`
 }
 
 // ExportK8sProtectionSetSnapshotJobConfig defines parameters required to
 // export a snapshot.
 type ExportK8sProtectionSetSnapshotJobConfig struct {
-	TargetNamespaceName string   `json:"targetNamespaceName"`
-	TargetClusterFID    string   `json:"targetClusterId"`
-	IgnoreErrors        bool     `json:"ignoreErrors,omitempty"`
-	Filter              string   `json:"filter,omitempty"`
-	PVCNames            []string `json:"pvcNames,omitempty"`
+	// TargetNamespaceName is the name of the target namespace.
+	TargetNamespaceName string `json:"targetNamespaceName"`
+	// TargetClusterFID is the FID of the target cluster.
+	TargetClusterFID string `json:"targetClusterId"`
+	// IgnoreErrors indicates whether to ignore errors during the export.
+	IgnoreErrors bool `json:"ignoreErrors,omitempty"`
+	// Filter is the filter to apply during the export.
+	Filter string `json:"filter,omitempty"`
+	// PVCNames are the names of the PVCs to export.
+	PVCNames []string `json:"pvcNames,omitempty"`
 }
 
 // RestoreK8sProtectionSetSnapshotJobConfig defines parameters required to
 // export a snapshot.
 type RestoreK8sProtectionSetSnapshotJobConfig struct {
-	IgnoreErrors bool     `json:"ignoreErrors,omitempty"`
-	Filter       string   `json:"filter,omitempty"`
-	PVCNames     []string `json:"pvcNames,omitempty"`
+	// IgnoreErrors indicates whether to ignore errors during the restore.
+	IgnoreErrors bool `json:"ignoreErrors,omitempty"`
+	// Filter is the filter to apply during the restore.
+	Filter string `json:"filter,omitempty"`
+	// PVCNames are the names of the PVCs to restore.
+	PVCNames []string `json:"pvcNames,omitempty"`
 }
 
 // BaseOnDemandSnapshotConfigInput defines parameters required to take an
 // on-demand snapshot.
 type BaseOnDemandSnapshotConfigInput struct {
+	// SLAID is the ID of the SLA.
 	SLAID string `json:"slaId"`
 }
 
 // Link has the REST link to the job.
 type Link struct {
-	Rel  string `json:"rel"`
+	// Rel is the relation of the link.
+	Rel string `json:"rel"`
+	// Href is the URL of the link.
 	Href string `json:"href"`
 }
 
 // RequestErrorInfo contains request error message if any.
 type RequestErrorInfo struct {
+	// Message is the error message.
 	Message string `json:"message"`
 }
 
 // AsyncRequestStatus is the status of the submitted jobs.
 type AsyncRequestStatus struct {
-	Status    string           `json:"status"`
-	StartTime time.Time        `json:"startTime,omitempty"`
-	Progress  float64          `json:"progress,omitempty"`
-	NodeID    string           `json:"nodeId,omitempty"`
-	Links     []Link           `json:"links"`
-	ID        string           `json:"id"`
-	Error     RequestErrorInfo `json:"error,omitempty"`
-	EndTime   time.Time        `json:"endTime,omitempty"`
+	// Status is the current status of the request.
+	Status string `json:"status"`
+	// StartTime is the time when the request started.
+	StartTime time.Time `json:"startTime,omitempty"`
+	// Progress is the progress of the request.
+	Progress float64 `json:"progress,omitempty"`
+	// NodeID is the ID of the node handling the request.
+	NodeID string `json:"nodeId,omitempty"`
+	// Links are the REST links related to the request.
+	Links []Link `json:"links"`
+	// ID is the ID of the request.
+	ID string `json:"id"`
+	// Error contains error information if any.
+	Error RequestErrorInfo `json:"error,omitempty"`
+	// EndTime is the time when the request ended.
+	EndTime time.Time `json:"endTime,omitempty"`
 }
 
 // PathNode is the path description of the Snappable.
 type PathNode struct {
-	FID  uuid.UUID `json:"fid"`
-	Name string    `json:"name"`
+	// FID is the FID of the path node.
+	FID uuid.UUID `json:"fid"`
+	// Name is the name of the path node.
+	Name string `json:"name"`
 	// ObjectType corresponds to HierarchyObjectTypeEnum.
 	ObjectType string `json:"objectType"`
 }
 
 // DataLocation defines the primary location of a Snappable.
 type DataLocation struct {
+	// ClusterUUID is the UUID of the cluster.
 	ClusterUUID uuid.UUID `json:"clusterUuid"`
-	CreateDate  string    `json:"createDate"`
-	ID          string    `json:"id"`
-	IsActive    bool      `json:"isActive"`
-	IsArchived  bool      `json:"isArchived"`
-	Name        string    `json:"name"`
+	// CreateDate is the creation date of the data location.
+	CreateDate string `json:"createDate"`
+	// ID is the ID of the data location.
+	ID string `json:"id"`
+	// IsActive indicates whether the data location is active.
+	IsActive bool `json:"isActive"`
+	// IsArchived indicates whether the data location is archived.
+	IsArchived bool `json:"isArchived"`
+	// Name is the name of the data location.
+	Name string `json:"name"`
 	// Type corresponds to the DataLocationName enum.
 	Type string `json:"type"`
 }
 
-// KubernetesProtectionSet contains fields contained in a ProtectionSet snappable.
+// KubernetesProtectionSet contains fields contained in a ProtectionSet
+// snappable.
 type KubernetesProtectionSet struct {
-	CDMID                       string         `json:"cdmId"`
-	ClusterUUID                 string         `json:"clusterUuid"`
-	ConfiguredSLADomain         core.SLADomain `json:"configuredSlaDomain"`
+	// CDMID is the ID of the CDM.
+	CDMID string `json:"cdmId"`
+	// ClusterUUID is the UUID of the cluster.
+	ClusterUUID string `json:"clusterUuid"`
+	// ConfiguredSLADomain is the configured SLA domain.
+	ConfiguredSLADomain core.SLADomain `json:"configuredSlaDomain"`
+	// EffectiveRetentionSLADomain is the effective retention SLA domain.
 	EffectiveRetentionSLADomain core.SLADomain `json:"effectiveRetentionSlaDomain,omitempty"`
-	EffectiveSLADomain          core.SLADomain `json:"effectiveSlaDomain"`
-	EffectiveSLASourceObject    PathNode       `json:"effectiveSlaSourceObject"`
-	ID                          uuid.UUID      `json:"id"`
-	IsRelic                     bool           `json:"isRelic"`
-	K8sClusterUUID              uuid.UUID      `json:"k8sClusterUuid"`
-	Name                        string         `json:"Name"`
-	Namespace                   string         `json:"namespace,omitempty"`
+	// EffectiveSLADomain is the effective SLA domain.
+	EffectiveSLADomain core.SLADomain `json:"effectiveSlaDomain"`
+	// EffectiveSLASourceObject is the source object of the effective SLA.
+	EffectiveSLASourceObject PathNode `json:"effectiveSlaSourceObject"`
+	// ID is the ID of the protection set.
+	ID uuid.UUID `json:"id"`
+	// IsRelic indicates whether the protection set is a relic.
+	IsRelic bool `json:"isRelic"`
+	// K8sClusterUUID is the UUID of the Kubernetes cluster.
+	K8sClusterUUID uuid.UUID `json:"k8sClusterUuid"`
+	// Name is the name of the protection set.
+	Name string `json:"Name"`
+	// Namespace is the namespace of the protection set.
+	Namespace string `json:"namespace,omitempty"`
 	// ObjectType corresponds to HierarchyObjectTypeEnum.
-	ObjectType             string             `json:"objectType"`
-	PendingSLA             core.SLADomain     `json:"pendingSla,omitempty"`
-	PrimaryClusterLocation DataLocation       `json:"primaryClusterLocation"`
-	PrimaryClusterUUID     uuid.UUID          `json:"primaryClusterUuid"`
-	ReplicatedObjectCount  int                `json:"replicatedObjectCount"`
-	RSName                 string             `json:"rsName"`
-	RSType                 string             `json:"rsType"`
-	SLAAssignment          core.SLAAssignment `json:"slaAssignment"`
-	SLAPauseStatus         bool               `json:"slaPauseStatus"`
+	ObjectType string `json:"objectType"`
+	// PendingSLA is the pending SLA domain.
+	PendingSLA core.SLADomain `json:"pendingSla,omitempty"`
+	// PrimaryClusterLocation is the primary location of the cluster.
+	PrimaryClusterLocation DataLocation `json:"primaryClusterLocation"`
+	// PrimaryClusterUUID is the UUID of the primary cluster.
+	PrimaryClusterUUID uuid.UUID `json:"primaryClusterUuid"`
+	// ReplicatedObjectCount is the count of replicated objects.
+	ReplicatedObjectCount int `json:"replicatedObjectCount"`
+	// RSName is the name of the protection set.
+	RSName string `json:"rsName"`
+	// RSType is the type of the protection set.
+	RSType string `json:"rsType"`
+	// SLAAssignment is the SLA assignment.
+	SLAAssignment core.SLAAssignment `json:"slaAssignment"`
+	// SLAPauseStatus indicates whether the SLA is paused.
+	SLAPauseStatus bool `json:"slaPauseStatus"`
 }
 
 // BaseSnapshotSummary picks ID and SLAID fields from the GetSnapshot response.
 type BaseSnapshotSummary struct {
-	ID    string `json:"id"`
+	// ID is the ID of the snapshot.
+	ID string `json:"id"`
+	// SLAID is the ID of the SLA.
 	SLAID string `json:"slaId"`
 }
 
 // ActivitySeriesInput is the input for the activitySeries query.
 type ActivitySeriesInput struct {
+	// ActivitySeriesID is the ID of the activity series.
 	ActivitySeriesID uuid.UUID `json:"activitySeriesId"`
-	CDMClusterUUID   uuid.UUID `json:"clusterUuid,omitempty"`
+	// CDMClusterUUID is the UUID of the CDM cluster.
+	CDMClusterUUID uuid.UUID `json:"clusterUuid,omitempty"`
 }
 
 // EventSeverity is the severity of the event.
@@ -212,82 +301,120 @@ const (
 
 // ActivitySeries is the response for the activitySeries query.
 type ActivitySeries struct {
-	// Required: true
+	// ActivityInfo is the information about the activity.
 	ActivityInfo string `json:"activityInfo"`
-
-	// Required: true
+	// Message is the message of the activity.
 	Message string `json:"message"`
-
-	// Required: true
+	// Status is the status of the activity.
 	Status string `json:"status"`
-
-	// Required: true
+	// Time is the time of the activity.
 	Time time.Time `json:"time"`
-
-	// Required: true
+	// Severity is the severity of the activity.
 	Severity EventSeverity `json:"severity"`
 }
 
 // EksConfigInput is the input for the EKS config.
 type EksConfigInput struct {
+	// CloudAccountId is the ID of the cloud account.
 	CloudAccountId string `json:"cloudAccountId"`
-	EKSClusterArn  string `json:"eksClusterArn"`
+	// EKSClusterArn is the ARN of the EKS cluster.
+	EKSClusterArn string `json:"eksClusterArn"`
 }
 
 // KuprServerProxyConfigInput is the input for the KUPR server proxy config.
 type KuprServerProxyConfigInput struct {
-	Cert      string `json:"cert"`
+	// Cert is the certificate for the proxy.
+	Cert string `json:"cert"`
+	// IPAddress is the IP address of the proxy.
 	IPAddress string `json:"ipAddress"`
-	Port      int    `json:"port,omitempty"`
+	// Port is the port of the proxy.
+	Port int `json:"port,omitempty"`
 }
 
 // K8sClusterAddInput is the input for adding a K8s cluster.
 type K8sClusterAddInput struct {
-	ID                      string                     `json:"id,omitempty"`
-	Name                    string                     `json:"name"`
-	Distribution            string                     `json:"distribution"`
-	Kubeconfig              string                     `json:"kubeconfig,omitempty"`
-	Transport               string                     `json:"transport,omitempty"`
-	Registry                string                     `json:"registry,omitempty"`
-	PullSecret              string                     `json:"pullSecret,omitempty"`
-	Region                  string                     `json:"region,omitempty"`
-	EKSConfig               EksConfigInput             `json:"eksConfig,omitempty"`
-	ServiceAccountName      string                     `json:"serviceAccountName,omitempty"`
-	AccessToken             string                     `json:"accessToken,omitempty"`
-	ClientId                string                     `json:"clientId,omitempty"`
-	ClientSecret            string                     `json:"clientSecret,omitempty"`
-	IsAutoPsCreationEnabled bool                       `json:"isAutoPsCreationEnabled,omitempty"`
-	OnboardingType          string                     `json:"onboardingType,omitempty"`
-	KuprServerProxyConfig   KuprServerProxyConfigInput `json:"kuprServerProxyConfig,omitempty"`
+	// ID is the ID of the cluster.
+	ID string `json:"id,omitempty"`
+	// Name is the name of the cluster.
+	Name string `json:"name"`
+	// Distribution is the distribution of the cluster.
+	Distribution string `json:"distribution"`
+	// Kubeconfig is the kubeconfig of the cluster.
+	Kubeconfig string `json:"kubeconfig,omitempty"`
+	// Transport is the transport method for the cluster.
+	Transport string `json:"transport,omitempty"`
+	// Registry is the registry for the cluster.
+	Registry string `json:"registry,omitempty"`
+	// PullSecret is the pull secret for the cluster.
+	PullSecret string `json:"pullSecret,omitempty"`
+	// Region is the region of the cluster.
+	Region string `json:"region,omitempty"`
+	// EKSConfig is the EKS configuration for the cluster.
+	EKSConfig EksConfigInput `json:"eksConfig,omitempty"`
+	// ServiceAccountName is the name of the service account.
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
+	// AccessToken is the access token for the cluster.
+	AccessToken string `json:"accessToken,omitempty"`
+	// ClientId is the client ID for the cluster.
+	ClientId string `json:"clientId,omitempty"`
+	// ClientSecret is the client secret for the cluster.
+	ClientSecret string `json:"clientSecret,omitempty"`
+	// IsAutoPsCreationEnabled indicates whether auto protection set creation is enabled.
+	IsAutoPsCreationEnabled bool `json:"isAutoPsCreationEnabled,omitempty"`
+	// OnboardingType is the onboarding type for the cluster.
+	OnboardingType string `json:"onboardingType,omitempty"`
+	// KuprServerProxyConfig is the proxy configuration for the KUPR server.
+	KuprServerProxyConfig KuprServerProxyConfigInput `json:"kuprServerProxyConfig,omitempty"`
 }
 
 // K8sClusterSummary is the response for the addK8sCluster query.
 type K8sClusterSummary struct {
-	ID                    string                     `json:"id"`
-	Name                  string                     `json:"name"`
-	Registry              string                     `json:"registry,omitempty"`
-	Distribution          string                     `json:"distribution,omitempty"`
+	// ID is the ID of the cluster.
+	ID string `json:"id"`
+	// Name is the name of the cluster.
+	Name string `json:"name"`
+	// Registry is the registry for the cluster.
+	Registry string `json:"registry,omitempty"`
+	// Distribution is the distribution of the cluster.
+	Distribution string `json:"distribution,omitempty"`
+	// KuprServerProxyConfig is the proxy configuration for the KUPR server.
 	KuprServerProxyConfig KuprServerProxyConfigInput `json:"kuprServerProxyConfig,omitempty"`
-	Transport             string                     `json:"transport,omitempty"`
-	LastRefreshTime       time.Time                  `json:"lastRefreshTime,omitempty"`
-	Region                string                     `json:"region,omitempty"`
-	OnboardingType        string                     `json:"onboardingType,omitempty"`
-	Status                string                     `json:"status"`
+	// Transport is the transport method for the cluster.
+	Transport string `json:"transport,omitempty"`
+	// LastRefreshTime is the last refresh time of the cluster.
+	LastRefreshTime time.Time `json:"lastRefreshTime,omitempty"`
+	// Region is the region of the cluster.
+	Region string `json:"region,omitempty"`
+	// OnboardingType is the onboarding type for the cluster.
+	OnboardingType string `json:"onboardingType,omitempty"`
+	// Status is the status of the cluster.
+	Status string `json:"status"`
 }
 
 // K8sClusterUpdateConfigInput is the input for updating a K8s cluster.
 type K8sClusterUpdateConfigInput struct {
-	Kubeconfig              string                     `json:"kubeconfig,omitempty"`
-	Transport               string                     `json:"transport,omitempty"`
-	Registry                string                     `json:"registry,omitempty"`
-	PullSecret              string                     `json:"pullSecret,omitempty"`
-	CloudAccountId          string                     `json:"cloudAccountId,omitempty"`
-	IsAutoPsCreationEnabled bool                       `json:"isAutoPsCreationEnabled,omitempty"`
-	ServiceAccountName      string                     `json:"serviceAccountName,omitempty"`
-	AccessToken             string                     `json:"accessToken,omitempty"`
-	ClientId                string                     `json:"clientId,omitempty"`
-	ClientSecret            string                     `json:"clientSecret,omitempty"`
-	KuprServerProxyConfig   KuprServerProxyConfigInput `json:"kuprServerProxyConfig,omitempty"`
+	// Kubeconfig is the kubeconfig of the cluster.
+	Kubeconfig string `json:"kubeconfig,omitempty"`
+	// Transport is the transport method for the cluster.
+	Transport string `json:"transport,omitempty"`
+	// Registry is the registry for the cluster.
+	Registry string `json:"registry,omitempty"`
+	// PullSecret is the pull secret for the cluster.
+	PullSecret string `json:"pullSecret,omitempty"`
+	// CloudAccountId is the ID of the cloud account.
+	CloudAccountId string `json:"cloudAccountId,omitempty"`
+	// IsAutoPsCreationEnabled indicates whether auto protection set creation is enabled.
+	IsAutoPsCreationEnabled bool `json:"isAutoPsCreationEnabled,omitempty"`
+	// ServiceAccountName is the name of the service account.
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
+	// AccessToken is the access token for the cluster.
+	AccessToken string `json:"accessToken,omitempty"`
+	// ClientId is the client ID for the cluster.
+	ClientId string `json:"clientId,omitempty"`
+	// ClientSecret is the client secret for the cluster.
+	ClientSecret string `json:"clientSecret,omitempty"`
+	// KuprServerProxyConfig is the proxy configuration for the KUPR server.
+	KuprServerProxyConfig KuprServerProxyConfigInput `json:"kuprServerProxyConfig,omitempty"`
 }
 
 type API struct {

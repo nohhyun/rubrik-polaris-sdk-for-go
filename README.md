@@ -266,9 +266,8 @@ variable `TEST_K8SCONFIG_FILE` points to a JSON file containing the following in
 ```json
 {
   "cdmID": "<UUID of the CDM cluster onboarded on to the RSC account>",
-  "kubeconfigFilePath": ",<Path to a valid K8s Cluster kubeconfig supporting
-  // 		load-balancers.
-  // 	- slaID: FID of an SLA present on the RSC cluster.
+  "kubeconfigFilePath": ",<Path to a valid K8s Cluster kubeconfig file>",
+  "slaID": "<FID of an SLA present on the RSC cluster>"
 }
 ```
 
