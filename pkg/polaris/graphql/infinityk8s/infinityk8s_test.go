@@ -401,7 +401,12 @@ func TestK8SIntegration(t *testing.T) {
 	}
 
 	// 13. Translate FID to internal_id and back.
-	interalID, err := infinityK8sClient.K8sObjectInternalID(ctx, rsFID)
+	interalID, err := infinityK8sClient.K8sObjectInternalIDByType(
+		ctx,
+		rsFID,
+		testConfig.CDMID,
+		infinityk8s.K8sObjectTypeInventory,
+	)
 	if err != nil {
 		t.Error(err)
 		return
@@ -409,10 +414,11 @@ func TestK8SIntegration(t *testing.T) {
 	logger.Printf(log.Info, "get internal id response: %v", interalID)
 
 	// Get the object FID from RSC
-	fid, err := infinityK8sClient.K8sObjectFID(
+	fid, err := infinityK8sClient.K8sObjectFIDByType(
 		ctx,
 		interalID,
 		testConfig.CDMID,
+		infinityk8s.K8sObjectTypeInventory,
 	)
 	if err != nil {
 		t.Error(err)
