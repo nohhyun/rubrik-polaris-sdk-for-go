@@ -260,6 +260,8 @@ type K8sClusterAddInput struct {
 	IsAutoPsCreationEnabled bool                       `json:"isAutoPsCreationEnabled,omitempty"`
 	OnboardingType          string                     `json:"onboardingType,omitempty"`
 	KuprServerProxyConfig   KuprServerProxyConfigInput `json:"kuprServerProxyConfig,omitempty"`
+	NadNamespace string `json:"nadNamespace,omitempty"`
+	NadName      string `json:"nadName,omitempty"`
 }
 
 // K8sClusterSummary is the response for the addK8sCluster query.
@@ -289,6 +291,8 @@ type K8sClusterUpdateConfigInput struct {
 	ClientId                string                     `json:"clientId,omitempty"`
 	ClientSecret            string                     `json:"clientSecret,omitempty"`
 	KuprServerProxyConfig   KuprServerProxyConfigInput `json:"kuprServerProxyConfig,omitempty"`
+	NadNamespace string `json:"nadNamespace,omitempty"`
+	NadName      string `json:"nadName,omitempty"`
 }
 
 type API struct {
