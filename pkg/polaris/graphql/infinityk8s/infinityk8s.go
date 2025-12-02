@@ -95,22 +95,58 @@ type AddK8sProtectionSetResponse struct {
 	RSType                string   `json:"rsType"`
 }
 
+// PvcStorageClassMappingEntry represents an entry mapping a PVC name to a
+// target storage class.
+type PvcStorageClassMappingEntry struct {
+	PvcName            string `json:"pvcName"`
+	TargetStorageClass string `json:"targetStorageClass"`
+}
+
+// StorageClassMappingEntry represents an entry mapping a source storage class
+// to a target storage class.
+type StorageClassMappingEntry struct {
+	SourceStorageClass string `json:"sourceStorageClass"`
+	TargetStorageClass string `json:"targetStorageClass"`
+}
+
+// PvcStorageClassMappings wraps the list of PVC storage class mappings.
+type PvcStorageClassMappings struct {
+	PvcStorageClassMappingList []PvcStorageClassMappingEntry `json:"pvcStorageClassMappingList,omitempty"`
+}
+
+// StorageClassMappings wraps the list of storage class mappings.
+type StorageClassMappings struct {
+	StorageClassMappingList []StorageClassMappingEntry `json:"storageClassMappingList,omitempty"`
+}
+
+// StorageMapping defines storage class mappings for restore and export
+// operations.
+type StorageMapping struct {
+	// PvcStorageClassMappings maps specific PVC names to target storage classes.
+	// Takes precedence over StorageClassMappings.
+	PvcStorageClassMappings *PvcStorageClassMappings `json:"pvcStorageClassMappings,omitempty"`
+	// StorageClassMappings maps source storage classes to target storage classes.
+	StorageClassMappings *StorageClassMappings `json:"storageClassMappings,omitempty"`
+}
+
 // ExportK8sProtectionSetSnapshotJobConfig defines parameters required to
 // export a snapshot.
 type ExportK8sProtectionSetSnapshotJobConfig struct {
-	TargetNamespaceName string   `json:"targetNamespaceName"`
-	TargetClusterFID    string   `json:"targetClusterId"`
-	IgnoreErrors        bool     `json:"ignoreErrors,omitempty"`
-	Filter              string   `json:"filter,omitempty"`
-	PVCNames            []string `json:"pvcNames,omitempty"`
+	TargetNamespaceName string          `json:"targetNamespaceName"`
+	TargetClusterFID    string          `json:"targetClusterId"`
+	IgnoreErrors        bool            `json:"ignoreErrors,omitempty"`
+	Filter              string          `json:"filter,omitempty"`
+	PVCNames            []string        `json:"pvcNames,omitempty"`
+	StorageMapping      *StorageMapping `json:"storageMapping,omitempty"`
 }
 
 // RestoreK8sProtectionSetSnapshotJobConfig defines parameters required to
 // export a snapshot.
 type RestoreK8sProtectionSetSnapshotJobConfig struct {
-	IgnoreErrors bool     `json:"ignoreErrors,omitempty"`
-	Filter       string   `json:"filter,omitempty"`
-	PVCNames     []string `json:"pvcNames,omitempty"`
+	IgnoreErrors   bool            `json:"ignoreErrors,omitempty"`
+	Filter         string          `json:"filter,omitempty"`
+	PVCNames       []string        `json:"pvcNames,omitempty"`
+	StorageMapping *StorageMapping `json:"storageMapping,omitempty"`
 }
 
 // BaseOnDemandSnapshotConfigInput defines parameters required to take an
@@ -260,8 +296,8 @@ type K8sClusterAddInput struct {
 	IsAutoPsCreationEnabled bool                       `json:"isAutoPsCreationEnabled,omitempty"`
 	OnboardingType          string                     `json:"onboardingType,omitempty"`
 	KuprServerProxyConfig   KuprServerProxyConfigInput `json:"kuprServerProxyConfig,omitempty"`
-	NadNamespace string `json:"nadNamespace,omitempty"`
-	NadName      string `json:"nadName,omitempty"`
+	NadNamespace            string                     `json:"nadNamespace,omitempty"`
+	NadName                 string                     `json:"nadName,omitempty"`
 }
 
 // K8sClusterSummary is the response for the addK8sCluster query.
@@ -291,8 +327,8 @@ type K8sClusterUpdateConfigInput struct {
 	ClientId                string                     `json:"clientId,omitempty"`
 	ClientSecret            string                     `json:"clientSecret,omitempty"`
 	KuprServerProxyConfig   KuprServerProxyConfigInput `json:"kuprServerProxyConfig,omitempty"`
-	NadNamespace string `json:"nadNamespace,omitempty"`
-	NadName      string `json:"nadName,omitempty"`
+	NadNamespace            string                     `json:"nadNamespace,omitempty"`
+	NadName                 string                     `json:"nadName,omitempty"`
 }
 
 type API struct {

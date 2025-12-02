@@ -316,6 +316,24 @@ func TestIntegration(t *testing.T) {
 			TargetClusterFID:    k8sFID.String(),
 			IgnoreErrors:        false,
 			Filter:              "{}",
+			StorageMapping: &infinityk8s.StorageMapping{
+				PvcStorageClassMappings: &infinityk8s.PvcStorageClassMappings{
+					PvcStorageClassMappingList: []infinityk8s.PvcStorageClassMappingEntry{
+						{
+							PvcName:            "mongodata-catalog",
+							TargetStorageClass: "vsphere-storage-class",
+						},
+					},
+				},
+				StorageClassMappings: &infinityk8s.StorageClassMappings{
+					StorageClassMappingList: []infinityk8s.StorageClassMappingEntry{
+						{
+							SourceStorageClass: "rook-ceph-block",
+							TargetStorageClass: "rook-cephfs",
+						},
+					},
+				},
+			},
 		},
 	)
 	if err != nil {
@@ -366,6 +384,24 @@ func TestIntegration(t *testing.T) {
 		infinityk8s.RestoreK8sProtectionSetSnapshotJobConfig{
 			IgnoreErrors: false,
 			Filter:       "{}",
+			StorageMapping: &infinityk8s.StorageMapping{
+				PvcStorageClassMappings: &infinityk8s.PvcStorageClassMappings{
+					PvcStorageClassMappingList: []infinityk8s.PvcStorageClassMappingEntry{
+						{
+							PvcName:            "mongodata-catalog",
+							TargetStorageClass: "vsphere-storage-class",
+						},
+					},
+				},
+				StorageClassMappings: &infinityk8s.StorageClassMappings{
+					StorageClassMappingList: []infinityk8s.StorageClassMappingEntry{
+						{
+							SourceStorageClass: "rook-ceph-block",
+							TargetStorageClass: "rook-cephfs",
+						},
+					},
+				},
+			},
 		},
 	)
 	if err != nil {
@@ -615,4 +651,79 @@ func TestMissingK8sProtectionSet(t *testing.T) {
 		t.Errorf("expected not found error, got %v", err)
 		return
 	}
+}
+
+// TestRestoreWithStorageMappingTemp is a one-time test for restore with storage mapping.
+// Replace the snapshotID with your actual snapshot ID.
+func TestRestoreWithStorageMappingTemp(t *testing.T) {
+	ctx := context.Background()
+
+	if !testsetup.BoolEnvSet("TEST_INTEGRATION") {
+		t.Skipf("skipping due to env TEST_INTEGRATION not set")
+	}
+
+	infinityK8sClient := infinityk8s.Wrap(client)
+	logger := infinityK8sClient.GQL.Log()
+	logger.SetLogLevel(log.Debug)
+
+	// TODO: Replace with your actual snapshot ID
+	snapshotID := "0e7a0a1d-a833-56fd-ae5b-2a2b8afa740b"
+
+	logger.Printf(
+		log.Info,
+		"Starting restore with storage mapping for snapshot: %s",
+		snapshotID,
+	)
+
+	// Restore with storage mapping
+	restoreJobResp, err := infinityK8sClient.RestoreK8sProtectionSetSnapshot(
+		ctx,
+		snapshotID,
+		infinityk8s.RestoreK8sProtectionSetSnapshotJobConfig{
+			IgnoreErrors: false,
+			Filter:       "{}",
+			StorageMapping: &infinityk8s.StorageMapping{
+				PvcStorageClassMappings: &infinityk8s.PvcStorageClassMappings{
+					PvcStorageClassMappingList: []infinityk8s.PvcStorageClassMappingEntry{
+						{
+							PvcName:            "mongodata-catalog",
+							TargetStorageClass: "vsphere-storage-class",
+						},
+					},
+				},
+				StorageClassMappings: &infinityk8s.StorageClassMappings{
+					StorageClassMappingList: []infinityk8s.StorageClassMappingEntry{
+						{
+							SourceStorageClass: "rook-ceph-block",
+							TargetStorageClass: "rook-cephfs",
+						},
+					},
+				},
+			},
+		},
+	)
+	if err != nil {
+		t.Errorf("restore job failed: %v", err)
+		return
+	}
+
+	logger.Printf(log.Info, "Restore job response: %+v", restoreJobResp)
+	logger.Printf(log.Info, "Restore job ID: %s", restoreJobResp.ID)
+
+	// Get the job status
+	getJobResp, err := infinityK8sClient.JobInstance(
+		ctx,
+		restoreJobResp.ID,
+		cdmID.String(),
+	)
+	if err != nil {
+		t.Errorf("failed to get job instance: %v", err)
+		return
+	}
+
+	logger.Printf(log.Info, "Job status: %+v", getJobResp)
+	logger.Printf(log.Info, "Job progress: %s", getJobResp.JobProgress)
+	logger.Printf(log.Info, "Job status: %s", getJobResp.Status)
+
+	t.Logf("Restore job started successfully with ID: %s", restoreJobResp.ID)
 }
