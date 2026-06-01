@@ -298,6 +298,8 @@ type K8sClusterAddInput struct {
 	KuprServerProxyConfig   KuprServerProxyConfigInput `json:"kuprServerProxyConfig,omitempty"`
 	NadNamespace            string                     `json:"nadNamespace,omitempty"`
 	NadName                 string                     `json:"nadName,omitempty"`
+	HelmChartVersion        string                     `json:"helmChartVersion,omitempty"`
+	HelmMinCdmVersion       string                     `json:"helmMinCdmVersion,omitempty"`
 }
 
 // K8sClusterSummary is the response for the addK8sCluster query.
