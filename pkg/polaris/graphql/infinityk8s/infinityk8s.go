@@ -300,6 +300,8 @@ type K8sClusterAddInput struct {
 	NadName                 string                     `json:"nadName,omitempty"`
 	HelmChartVersion        string                     `json:"helmChartVersion,omitempty"`
 	HelmMinCdmVersion       string                     `json:"helmMinCdmVersion,omitempty"`
+	MaxPvcsPerAgent         *int32                     `json:"maxPvcsPerAgent,omitempty"`
+	MaxConcurrentAgents     *int32                     `json:"maxConcurrentAgents,omitempty"`
 }
 
 // K8sClusterSummary is the response for the addK8sCluster query.
@@ -331,6 +333,8 @@ type K8sClusterUpdateConfigInput struct {
 	KuprServerProxyConfig   KuprServerProxyConfigInput `json:"kuprServerProxyConfig,omitempty"`
 	NadNamespace            string                     `json:"nadNamespace,omitempty"`
 	NadName                 string                     `json:"nadName,omitempty"`
+	MaxPvcsPerAgent         *int32                     `json:"maxPvcsPerAgent,omitempty"`
+	MaxConcurrentAgents     *int32                     `json:"maxConcurrentAgents,omitempty"`
 }
 
 type API struct {
