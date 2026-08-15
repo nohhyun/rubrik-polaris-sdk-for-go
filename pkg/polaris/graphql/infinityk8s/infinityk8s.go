@@ -302,6 +302,8 @@ type K8sClusterAddInput struct {
 	HelmMinCdmVersion       string                     `json:"helmMinCdmVersion,omitempty"`
 	MaxPvcsPerAgent         *int32                     `json:"maxPvcsPerAgent,omitempty"`
 	MaxConcurrentAgents     *int32                     `json:"maxConcurrentAgents,omitempty"`
+	DataPathTransport       string                     `json:"dataPathTransport,omitempty"`
+	BackupSubnetCidr        string                     `json:"backupSubnetCidr,omitempty"`
 }
 
 // K8sClusterSummary is the response for the addK8sCluster query.
@@ -335,6 +337,8 @@ type K8sClusterUpdateConfigInput struct {
 	NadName                 string                     `json:"nadName,omitempty"`
 	MaxPvcsPerAgent         *int32                     `json:"maxPvcsPerAgent,omitempty"`
 	MaxConcurrentAgents     *int32                     `json:"maxConcurrentAgents,omitempty"`
+	DataPathTransport       string                     `json:"dataPathTransport,omitempty"`
+	BackupSubnetCidr        string                     `json:"backupSubnetCidr,omitempty"`
 }
 
 type API struct {
